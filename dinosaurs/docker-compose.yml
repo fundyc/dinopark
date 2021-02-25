@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  dinosaurs:
+    build: .
+    ports:
+      - "8081:8081"
+    depends_on:
+      - "zipkin"

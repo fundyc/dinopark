@@ -1,0 +1,41 @@
+version: "3.8"
+services:
+  eureka:
+    image: springcloud/eureka
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  triceratops:
+    build: ../triceratops
+    ports:
+      - "8082:8082"
+    depends_on:
+      - "zipkin"
+      - "eureka"
+
+  dinosaurs:
+    build: ../dinosaurs
+    ports:
+      - "8081:8081"
+    depends_on:
+      - "zipkin"
+      - "eureka"
+
+  aggregator:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "zipkin"
+    command: ["./wait-for-it.sh", "zipkin:9411", "--", "python", "app.py"]

@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  eureka:
+    build: ./eureka
+    ports:
+      - "8761:8761"
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9411"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  triceratops:
+    build: ./triceratops
+    ports:
+      - "8082:8082"
+    depends_on:
+      - "zipkin"
+
+  dinosaurs:
+    build: ./dinosaurs
+    ports:
+      - "8081:8081"
+    depends_on:
+      - "zipkin"
+
+  aggregator:
+    build: ./aggregator
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "zipkin"
+      - "triceratops"
+      - "dinosaurs"
+
+  start_dependencies:
+    image: dadarek/wait-for-dependencies
+    depends_on:
+      - zipkin
+      - eureka
+    command: zipkin:9411 eureka:8761
