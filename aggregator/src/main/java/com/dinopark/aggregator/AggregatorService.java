@@ -27,9 +27,8 @@ public class AggregatorService {
 
     Mono<Aggregator> getAggregator() {
         versionField.updateValue(getClass().getPackage().getImplementationVersion());
-        return getDinosaurs()
-                .onErrorReturn(null)
-                .zipWith(getTriceratop().onErrorReturn(null),
+        return getDinosaurs().onErrorReturn(new Dinosaurs())
+                .zipWith(getTriceratop().onErrorReturn(new Triceratop()),
                 (dinosaurs, triceratop) -> new Aggregator(dinosaurs, triceratop));
     }
 
@@ -42,9 +41,7 @@ public class AggregatorService {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(Dinosaurs.class);
                     }
-                    else {
-                        return response.createException().flatMap(Mono::error);
-                    }
+                    return response.createException().flatMap(Mono::error);
                 });
     }
 
@@ -57,9 +54,7 @@ public class AggregatorService {
                     if (response.statusCode().is2xxSuccessful()) {
                         return response.bodyToMono(Triceratop.class);
                     }
-                    else {
-                        return response.createException().flatMap(Mono::error);
-                    }
+                    return response.createException().flatMap(Mono::error);
                 });
     }
 }
